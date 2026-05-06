@@ -14,7 +14,7 @@ def render_veo() -> None:
         from google import genai
         from google.genai import types
     except Exception:
-        st.error("Chưa cài google-genai."); return
+        st.warning("Google Veo chưa sẵn sàng: thiếu thư viện google-genai hoặc chưa cấu hình Google API Key. App chính vẫn chạy bình thường vì Veo được lazy-load."); return
     api_key = st.text_input("Google API Key", value=config.GOOGLE_API_KEY, type="password")
     img = st.file_uploader("Ảnh JPG/PNG", type=["jpg","jpeg","png"])
     prompt = st.text_area("Prompt", value="Animate this image naturally, cinematic movement, smooth camera motion.")
@@ -37,7 +37,7 @@ def render_veo() -> None:
                 if hasattr(v, "video_bytes") and v.video_bytes: st.video(v.video_bytes); st.download_button("Tải MP4", v.video_bytes, "veo_video.mp4", "video/mp4")
                 elif hasattr(v, "uri"): st.video(v.uri); st.link_button("Mở video", v.uri)
             else: st.error("Không thấy video trong response.")
-        except Exception as exc: st.error(str(exc))
+        except Exception as exc: st.error("Google Veo trả về lỗi. Hãy kiểm tra API key, quota, ảnh đầu vào và log Streamlit Cloud."); st.caption(str(exc))
         finally:
             if tmp_path and os.path.exists(tmp_path): os.remove(tmp_path)
 
@@ -51,7 +51,7 @@ def render_tiktok() -> None:
         try:
             import yt_dlp
         except Exception:
-            st.error("Chưa cài yt-dlp."); return
+            st.warning("TikTok Downloader chưa sẵn sàng: thiếu thư viện yt-dlp. App chính vẫn chạy bình thường vì TikTok được lazy-load."); return
         ydl_opts={"format":"mp4/best","outtmpl": tempfile.gettempdir()+"/%(id)s.%(ext)s", "quiet": True, "noplaylist": True}
         with st.spinner("Đang xử lý link..."):
             try:
@@ -64,4 +64,4 @@ def render_tiktok() -> None:
                 if len(data)<80_000_000: st.video(data)
                 st.download_button("⬇️ Tải video", data, os.path.basename(path), "video/mp4")
             except Exception as exc:
-                st.error(f"Không tải được: {exc}")
+                st.error("Không tải được video. Hãy kiểm tra link, quyền tải video, kết nối mạng hoặc log Streamlit Cloud."); st.caption(str(exc))

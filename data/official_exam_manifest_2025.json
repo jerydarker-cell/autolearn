@@ -1,0 +1,18 @@
+{
+  "version":"2025-06-01",
+  "source":"Cục Cảnh sát giao thông - Bộ 600 câu hỏi dùng cho sát hạch lái xe cơ giới đường bộ",
+  "chapters":[
+    {"chapter":1,"name":"Quy định chung và quy tắc giao thông đường bộ","range":"1-180","count":180},
+    {"chapter":2,"name":"Văn hóa giao thông, đạo đức người lái xe, PCCC và cứu hộ cứu nạn","range":"181-205","count":25},
+    {"chapter":3,"name":"Kỹ thuật lái xe","range":"206-263","count":58},
+    {"chapter":4,"name":"Cấu tạo và sửa chữa","range":"264-300","count":37},
+    {"chapter":5,"name":"Báo hiệu đường bộ","range":"301-485","count":185},
+    {"chapter":6,"name":"Giải thế sa hình và xử lý tình huống","range":"486-600","count":115}
+  ],
+  "license_groups":{
+    "A1/A":{"question_count":250,"critical_count":20,"note":"Chọn lọc từ bộ 600 câu theo Phụ lục I Công văn 2262/CSGT-P5."},
+    "B1":{"question_count":300,"critical_count":30,"note":"Chọn lọc từ bộ 600 câu theo Phụ lục II Công văn 2262/CSGT-P5."},
+    "B/C1/C/D1/D2/D/BE/C1E/CE/D1E/D2E/DE":{"question_count":600,"critical_count":60,"note":"Áp dụng đầy đủ bộ 600 câu."}
+  },
+  "import_schema":["id","license_group","chapter","question","option1","option2","option3","option4","answer","is_critical","image_hint"]
+}

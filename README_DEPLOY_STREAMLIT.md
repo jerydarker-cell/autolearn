@@ -123,16 +123,3 @@ TELEGRAM_BOT_TOKEN
 Bản này đã được đóng gói lại đầy đủ module từ v15 Production và thêm `modules/stability.py`, `STABILITY_CHECKLIST.md`, các trang Stability Hub, Checklist test, Test 2 tài khoản, Hướng dẫn deploy, Trung tâm lỗi.
 
 Trước khi public, chạy thử: đăng ký 2 tài khoản, thêm thuốc, làm quiz, backup, kiểm tra Supabase và GitHub Actions.
-
----
-
-## Thay hẳn v8 bằng bản này
-
-Nếu repo của bạn đang chạy AutoLearn v8, hãy xóa toàn bộ file cũ rồi upload toàn bộ gói này. Không chỉ upload app.py, vì bản v15.1 dùng modules/, scripts/, sql/ và workflow.
-
-## Secrets đã chuẩn bị sẵn
-
-Dùng file `STREAMLIT_SECRETS_COPY_PASTE.toml` để copy vào Streamlit Cloud Secrets.
-Dùng file `GITHUB_ACTIONS_SECRETS_COPY_PASTE.env` để nhập GitHub Actions Secrets.
-
-Không commit file đã điền key thật lên GitHub.

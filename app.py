@@ -1,13 +1,12 @@
 import json
 from datetime import datetime
 
-import pandas as pd
 import streamlit as st
 
-from modules import ai, backup, driving, english, media_tools, medicine, settings, stability, ui
+from modules import ai, backup, driving, english, medicine, settings, stability, ui, official_exam, push_notifications, mobile_pro, performance, health_check, terms_privacy, public_safe, admin_mini, deploy_hotfix
 from modules.auth import current_user, logout, render_auth_gate
 from modules.db import get_db
-from modules.config import APP_NAME, APP_VERSION, AI_MODE, USE_EXTERNAL_AI
+from modules.config import APP_NAME, APP_VERSION
 
 st.set_page_config(page_title=APP_NAME, page_icon="🚗", layout="wide", initial_sidebar_state="expanded")
 ui.apply_style()
@@ -25,6 +24,8 @@ profile.setdefault("driving", {"completed": [], "quiz_history": [], "wrong_bank"
 profile.setdefault("english", {"learned_words": [], "quiz_history": [], "wrong_bank": {}, "level": "A1"})
 profile.setdefault("ai_notes", [])
 profile.setdefault("notification", {"email_enabled": True, "telegram_chat_id": "", "daily_summary": True})
+profile.setdefault("performance", {"mode": "balanced", "mobile_first": True, "animations": "reduced", "quiz_page_size": 10, "lazy_media_tools": True})
+performance.apply_performance_style(profile)
 
 
 def save_profile(new_profile=None):
@@ -43,7 +44,7 @@ def dashboard():
       <div class='hero-grid'>
         <div>
           <h1>🚀 {APP_NAME}</h1>
-          <p>Bản Production: đăng nhập thật, database thật, nhắc thuốc ngoài app, module gọn, AI gợi ý toàn hệ thống, sẵn sàng deploy Streamlit Cloud.</p>
+          <p>Bản v15.8.2 Public Safe Release: thêm Terms & Privacy, Admin mini dashboard, kiểm tra sâu bộ 600 câu, công cụ 60 câu điểm liệt và mobile public an toàn.</p>
           <span class='pill green'>v{APP_VERSION}</span><span class='pill blue'>{user['email']}</span><span class='pill purple'>Final Score {score}/100</span>
         </div>
         <div class='phone-panel'><div class='road'><div class='drive-car'>🚗</div><div class='road-lane'></div><div class='road-line'></div></div></div>
@@ -53,10 +54,10 @@ def dashboard():
     st.markdown(f"""
     <div class='fin-grid'>
       <div class='fin-card'>
-        <div class='fin-label'>Production Portfolio</div>
+        <div class='fin-label'>Public Safe Portfolio</div>
         <div class='fin-big'>{score}/100</div>
         <div class='muted'>Điểm tổng hợp từ tiến độ học lái, tiếng Anh, nhắc thuốc và cấu hình riêng tư.</div>
-        <div class='action-row'><div class='action-chip'>🚗 Driving</div><div class='action-chip'>🇬🇧 English</div><div class='action-chip'>💊 Care</div><div class='action-chip'>🔐 Database</div><div class='action-chip'>🤖 AI Suggest</div></div>
+        <div class='action-row'><div class='action-chip'>🛡️ Terms</div><div class='action-chip'>👑 Admin Mini</div><div class='action-chip'>🚨 60 câu điểm liệt</div><div class='action-chip'>📱 Public mobile</div><div class='action-chip'>🧯 Hotfix</div></div>
       </div>
       <div class='fin-card'>
         <div class='fin-label'>Account</div>
@@ -67,7 +68,7 @@ def dashboard():
     </div>
     """, unsafe_allow_html=True)
     c1,c2,c3,c4 = st.columns(4)
-    with c1: ui.metric_card("Bài lái xe", len(driving_data.get("completed", [])), "đã hoàn thành")
+    with c1: ui.metric_card("Module lái xe", len(driving_data.get("completed", [])), "đã hoàn thành")
     with c2: ui.metric_card("Quiz lái", len(driving_data.get("quiz_history", [])), "lượt")
     with c3: ui.metric_card("English words", len(english_data.get("learned_words", [])), "đã học")
     with c4: ui.metric_card("Thuốc", len(meds), "đang theo dõi")
@@ -83,73 +84,25 @@ def dashboard():
     with cols_stab[0]: ui.card("🛡️", "Điều khoản rõ ràng", "Có trang lưu ý an toàn cho thuốc, video, dữ liệu riêng và học lái xe.")
     with cols_stab[1]: ui.card("🧪", "Checklist test", "Test đăng nhập, Supabase, nhắc thuốc, quiz, backup và GitHub Actions trước khi public.")
     with cols_stab[2]: ui.card("🚀", "Deploy guide", "Hướng dẫn deploy nằm ngay trong app để bạn không cần mở file README liên tục.")
-    st.markdown("## 🖼️ Hình động hướng dẫn nhanh")
+    st.markdown("## 🖼️ Minh họa nhanh nổi bật")
     ui.lane_svg()
+    st.markdown("<div class='deploy-note'><b>☁️ Streamlit Cloud tối ưu:</b> bản này đã tinh gọn khởi động, giảm phụ thuộc không cần thiết ở giao diện chính, bổ sung cấu hình .streamlit phù hợp và tài liệu deploy nhanh ngay trong gói.</div>", unsafe_allow_html=True)
 
 
 def ai_center():
     st.title("🤖 AI Suggestion Center")
-    st.caption("Mặc định dùng AI nội bộ/offline-first: trả lời thông minh bằng dữ liệu trong app + template + cache, không tốn API.")
+    st.caption("Trung tâm gợi ý cho tất cả ứng dụng. Có chế độ offline và Gemini nếu cấu hình GOOGLE_API_KEY.")
     module = st.selectbox("Bạn muốn AI gợi ý cho mục nào?", ["Tổng quan hôm nay", "Học lái xe", "Học tiếng Anh", "Nhắc thuốc cho mẹ", "TikTok hợp lệ", "Sao lưu & riêng tư"])
     extra = st.text_area("Thông tin thêm", placeholder="Ví dụ: Tôi yếu phần chuyển làn, mẹ hay quên thuốc buổi tối...", height=100)
-    st.info(f"Chế độ hiện tại: AI_MODE={AI_MODE} · USE_EXTERNAL_AI={USE_EXTERNAL_AI}. Nếu để offline/false thì không tốn API.")
-    if st.button("✨ Tạo gợi ý miễn phí"):
-        result = ai.internal_ai_response(module, extra, profile, len(db.list_medications(user["id"])))
+    if st.button("✨ Tạo gợi ý"):
+        base = ai.offline_suggestions(profile, len(db.list_medications(user["id"])))
+        prompt = f"Bạn là trợ lý học tập và chăm sóc gia đình. Module: {module}. Profile JSON: {json.dumps(profile, ensure_ascii=False)[:3000]}. Thông tin thêm: {extra}. Hãy gợi ý ngắn gọn, dễ làm, tiếng Việt."
+        result = ai.gemini_response(prompt)
+        if result.startswith("Chưa cấu hình") or result.startswith("Không gọi"):
+            result = "Gợi ý offline:\n" + "\n".join([f"- {x}" for x in base]) + f"\n\nRiêng cho {module}: hãy chọn một việc nhỏ có thể làm trong 10 phút và lưu lại kết quả."
         st.markdown(f"<div class='panel'><pre style='white-space:pre-wrap;font-family:inherit'>{result}</pre></div>", unsafe_allow_html=True)
-        profile.setdefault("ai_notes", []).append({"time": datetime.now().isoformat(timespec="seconds"), "module": module, "result": result, "extra": extra, "engine": "internal_offline"})
+        profile.setdefault("ai_notes", []).append({"time": datetime.now().isoformat(timespec="seconds"), "module": module, "result": result, "extra": extra})
         save_profile(profile)
-
-    with st.expander("⚙️ Dùng API ngoài khi thật sự cần"):
-        st.warning("API ngoài mặc định bị tắt để không phát sinh chi phí. Chỉ bật nếu bạn chủ động cấu hình USE_EXTERNAL_AI=true và đặt giới hạn số lần gọi.")
-        if st.button("Thử gọi API ngoài có kiểm soát"):
-            prompt = f"Module: {module}. Thông tin: {extra}. Hãy gợi ý ngắn gọn."
-            result = ai.gemini_response(prompt)
-            st.write(result)
-
-
-def internal_api_page():
-    st.title("🧠 API nội bộ tiết kiệm")
-    st.caption("Nâng cấp để app trả lời thông minh hơn mà không tốn Google/OpenAI/Gemini API mặc định.")
-    status = ai.api_usage_status()
-    c1, c2, c3, c4 = st.columns(4)
-    with c1: ui.metric_card("AI mode", status["ai_mode"], "offline là miễn phí")
-    with c2: ui.metric_card("External API", "ON" if status["use_external_ai"] else "OFF", "mặc định nên OFF")
-    with c3: ui.metric_card("Cache", status["cache_items"], "phản hồi đã lưu")
-    with c4: ui.metric_card("Google key", "Có" if status["google_key_configured"] else "Không", "không bắt buộc")
-
-    st.markdown("""
-    ### Cách app trả lời thông minh mà không tốn API
-    1. Đọc dữ liệu hồ sơ: quiz sai, từ đã học, thuốc đang theo dõi, lịch sử học.  
-    2. Nhận diện chủ đề: lái xe, tiếng Anh, thuốc, TikTok, backup, Supabase.  
-    3. Sinh gợi ý bằng bộ luật nội bộ + template hướng dẫn chi tiết.  
-    4. Lưu cache phản hồi để lần sau dùng lại, nhanh hơn và không gọi API.
-
-    ### Khi nào mới cần API ngoài?
-    - Khi muốn AI viết nội dung dài/sáng tạo hơn.
-    - Khi muốn trả lời câu hỏi mở hoàn toàn ngoài dữ liệu app.
-    - Khi bạn đã đặt ngân sách và bật `USE_EXTERNAL_AI=true`.
-    """)
-
-    module = st.selectbox("Test AI nội bộ cho module", ["Học lái xe", "Học tiếng Anh", "Nhắc thuốc cho mẹ", "TikTok hợp lệ", "Sao lưu & riêng tư", "Tổng quan hôm nay"], key="internal_module")
-    question = st.text_area("Nhập câu hỏi hoặc tình huống", value="Tôi muốn học nhanh phần chuyển làn và không muốn tốn API.", height=90)
-    if st.button("🚀 Tạo câu trả lời nội bộ"):
-        st.markdown(ai.internal_ai_response(module, question, profile, len(db.list_medications(user["id"]))), unsafe_allow_html=True)
-
-    col_a, col_b = st.columns(2)
-    with col_a:
-        if st.button("🧹 Xóa cache AI nội bộ"):
-            n = ai.clear_ai_cache()
-            st.success(f"Đã xóa {n} phản hồi cache.")
-    with col_b:
-        st.download_button("⬇️ Tải trạng thái AI JSON", json.dumps(status, ensure_ascii=False, indent=2), "internal_ai_status.json", "application/json")
-
-    st.markdown("### Secrets khuyến nghị để không tốn API")
-    st.code("""AI_MODE = "offline"
-USE_EXTERNAL_AI = "false"
-AI_CACHE_ENABLED = "true"
-MAX_EXTERNAL_AI_CALLS_PER_SESSION = "0"
-# GOOGLE_API_KEY có thể để trống nếu không dùng Veo/Gemini
-GOOGLE_API_KEY = """"", language="toml")
 
 
 def final_report():
@@ -169,18 +122,26 @@ def final_report():
 
 
 with st.sidebar:
-    st.markdown("## 🚀 AutoLearn v15.2")
-    st.caption("Production · Offline AI nội bộ · Không tốn API mặc định")
+    st.markdown("## 🚀 AutoLearn v15.8.1")
+    st.caption("Performance · Stability · Lazy Load · Mobile")
     st.markdown(f"**{user.get('display_name','Bạn')}**  \\n{user['email']}")
     page = st.radio("Đi tới", [
         "🏠 Production Dashboard",
         "🤖 AI Suggestion Center",
-        "🧠 API nội bộ tiết kiệm",
-        "🚗 Học lái xe",
-        "🧪 Quiz lái xe",
-        "🇬🇧 English Pro",
-        "🧪 English Quiz",
+        "🚗 Driving Academy Master",
+        "🧪 Driving Quiz Master",
+        "🪪 Bộ 600 câu chính thức",
+        "🇬🇧 English Master A1–B2",
+        "🧪 English Quiz Master",
         "💊 Nhắc thuốc Production",
+        "🔔 Push Notification",
+        "📱 Mobile Pro Mode",
+        "⚡ Performance Mode",
+        "🛡️ Terms & Privacy",
+        "👑 Admin Mini Dashboard",
+        "🛡️ Public Safe Center",
+        "🧯 Deploy Hotfix Guide",
+        "🩺 App Health Check",
         "🩺 Sức khỏe & báo cáo",
         "🎬 Google Veo",
         "📥 TikTok Downloader",
@@ -203,24 +164,50 @@ if page == "🏠 Production Dashboard":
     dashboard()
 elif page == "🤖 AI Suggestion Center":
     ai_center()
-elif page == "🧠 API nội bộ tiết kiệm":
-    internal_api_page()
-elif page == "🚗 Học lái xe":
+elif page == "🚗 Driving Academy Master":
     driving.render_dashboard(profile, save_profile)
-elif page == "🧪 Quiz lái xe":
+elif page == "🧪 Driving Quiz Master":
     driving.render_quiz(profile, save_profile)
-elif page == "🇬🇧 English Pro":
+elif page == "🪪 Bộ 600 câu chính thức":
+    official_exam.render(profile, save_profile)
+elif page == "🇬🇧 English Master A1–B2":
     english.render(profile, save_profile)
-elif page == "🧪 English Quiz":
+elif page == "🧪 English Quiz Master":
     english.render_quiz(profile, save_profile)
 elif page == "💊 Nhắc thuốc Production":
     medicine.render_medicine(db, user, profile, save_profile)
+elif page == "🔔 Push Notification":
+    push_notifications.render(profile, save_profile)
+elif page == "📱 Mobile Pro Mode":
+    mobile_pro.render(profile, save_profile)
+elif page == "⚡ Performance Mode":
+    performance.render(profile, save_profile)
+elif page == "🛡️ Terms & Privacy":
+    terms_privacy.render(profile, save_profile)
+elif page == "👑 Admin Mini Dashboard":
+    admin_mini.render(db, user, profile)
+elif page == "🛡️ Public Safe Center":
+    public_safe.render(profile, save_profile)
+elif page == "🧯 Deploy Hotfix Guide":
+    deploy_hotfix.render()
+elif page == "🩺 App Health Check":
+    health_check.render(db, user, profile)
 elif page == "🩺 Sức khỏe & báo cáo":
     medicine.render_health(db, user)
 elif page == "🎬 Google Veo":
-    media_tools.render_veo()
+    try:
+        from modules import media_tools as _media_tools
+        _media_tools.render_veo()
+    except Exception as exc:
+        st.error("Không mở được Google Veo. Chức năng này chỉ tải khi bạn vào trang này để không làm chậm app chính.")
+        st.caption(str(exc))
 elif page == "📥 TikTok Downloader":
-    media_tools.render_tiktok()
+    try:
+        from modules import media_tools as _media_tools
+        _media_tools.render_tiktok()
+    except Exception as exc:
+        st.error("Không mở được TikTok Downloader. Chức năng này chỉ tải khi bạn vào trang này để không làm chậm app chính.")
+        st.caption(str(exc))
 elif page == "📊 Production Report":
     final_report()
 elif page == "🛡️ Stability Hub":
@@ -239,4 +226,4 @@ elif page == "⚙️ Production Settings":
     settings.render()
 
 st.divider()
-st.caption("AutoLearn Ultra Production v15.2 Smart Offline AI · Tách module · Đăng nhập thật · Database thật · Reminder worker ngoài app · Deploy-ready.")
+st.caption("AutoLearn v15.8.2 · Public Safe Release · Terms & Privacy · Admin Mini · 60 Critical Manager · Mobile Safe · Hotfix Guide.")
