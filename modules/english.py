@@ -140,8 +140,10 @@ def _level_visual(level: str):
         "A1": ["Từ cơ bản", "Câu ngắn", "Nghe chậm", "Mẫu câu đời sống"],
         "A2": ["Từ mở rộng", "Giải thích ngắn", "Speaking chủ đề", "Listening dài hơn"],
         "B1": ["Nêu ý kiến", "So sánh", "Đưa lời khuyên", "Phản hồi tự nhiên"],
+        "B2": ["Phân tích rủi ro", "Nối ý nâng cao", "Thảo luận lựa chọn", "Phản hồi chuyên nghiệp"],
     }
-    chips = ''.join([f"<span style='display:inline-block;margin:6px;padding:8px 12px;border-radius:999px;background:#14233f;border:1px solid #29406d;color:#dbeafe;font-weight:700'>{x}</span>" for x in labels[level]])
+    items = labels.get(level, ["Học theo cấp độ", "Luyện đều mỗi ngày", "Ôn sai thông minh"])
+    chips = ''.join([f"<span style='display:inline-block;margin:6px;padding:8px 12px;border-radius:999px;background:#14233f;border:1px solid #29406d;color:#dbeafe;font-weight:700'>{x}</span>" for x in items])
     st.markdown(f"<div class='glass-card'><h3>{level} Learning Focus</h3><p class='muted'>Mục tiêu của cấp độ {level}</p><div>{chips}</div></div>", unsafe_allow_html=True)
 
 
@@ -158,12 +160,12 @@ def render(profile: Dict[str, Any], save_cb) -> None:
         _english_hero_svg()
         cols = st.columns(3)
         for i, item in enumerate(tracks):
-            with cols[i]:
+            with cols[i % len(cols)]:
                 ui.card("🇬🇧", item['title'], item['focus'], item['level'])
                 ui.pills(item['items'], 'blue')
                 _level_visual(item['level'])
     with tabs[1]:
-        level_filter = st.selectbox("Lọc theo cấp độ", ["Tất cả", "A1", "A2", "B1"])
+        level_filter = st.selectbox("Lọc theo cấp độ", ["Tất cả", "A1", "A2", "B1", "B2"])
         topic_filter = st.selectbox("Lọc theo chủ đề", ["Tất cả"] + sorted({v['topic'] for v in vocab}))
         filtered = vocab
         if level_filter != 'Tất cả': filtered = [v for v in filtered if v['level'] == level_filter]
@@ -179,7 +181,7 @@ def render(profile: Dict[str, Any], save_cb) -> None:
             learned.add(word['word']); eng['learned_words'] = sorted(learned); save_cb(profile); st.success('Đã lưu từ đã học.')
     with tabs[2]:
         st.markdown("### 💬 Real-life Conversation")
-        level = st.selectbox("Chọn cấp độ conversation", ["A1", "A2", "B1"])
+        level = st.selectbox("Chọn cấp độ conversation", ["A1", "A2", "B1", "B2"])
         available = [x for x in conversations if x['level'] == level]
         title = st.selectbox("Chọn tình huống", [x['title'] for x in available])
         conv = next(x for x in available if x['title'] == title)
@@ -200,7 +202,7 @@ def render(profile: Dict[str, Any], save_cb) -> None:
                 st.success('Tốt! Hãy đọc to phần bạn vừa viết để luyện nói.')
     with tabs[3]:
         st.markdown("### 🎧 Listening Lab")
-        level = st.selectbox("Chọn cấp độ listening", ["A1", "A2", "B1"])
+        level = st.selectbox("Chọn cấp độ listening", ["A1", "A2", "B1", "B2"])
         available = [x for x in listening if x['level'] == level]
         item = st.selectbox("Chọn đoạn nghe", [x['title'] for x in available])
         obj = next(x for x in available if x['title'] == item)
@@ -215,7 +217,7 @@ def render(profile: Dict[str, Any], save_cb) -> None:
                 st.info("Mẹo: nghe từ khóa thời gian, hành động hoặc lý do trước.")
     with tabs[4]:
         st.markdown("### ✍️ Grammar mini-lessons")
-        level = st.selectbox("Chọn cấp độ grammar", ["Tất cả", "A1", "A2", "B1"])
+        level = st.selectbox("Chọn cấp độ grammar", ["Tất cả", "A1", "A2", "B1", "B2"])
         items = grammar if level == 'Tất cả' else [g for g in grammar if g['level'] == level]
         for g in items:
             with st.expander(f"{g['level']} · {g['title']}"):
