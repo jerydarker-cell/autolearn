@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 APP_DATA_DIR = BASE_DIR / "app_data"
 APP_DATA_DIR.mkdir(exist_ok=True)
 
-APP_NAME = "AutoLearn v15.8.2 Public Safe Release"
+APP_NAME = "AutoLearn Public"
 APP_VERSION = "15.8.2 Public Safe"
 
 

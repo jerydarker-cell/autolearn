@@ -122,7 +122,7 @@ def final_report():
 
 
 with st.sidebar:
-    st.markdown("## 🚀 AutoLearn v15.8.1")
+    st.markdown("## 🚀 AutoLearn Public")
     st.caption("Performance · Stability · Lazy Load · Mobile")
     st.markdown(f"**{user.get('display_name','Bạn')}**  \\n{user['email']}")
     page = st.radio("Đi tới", [
@@ -226,4 +226,4 @@ elif page == "⚙️ Production Settings":
     settings.render()
 
 st.divider()
-st.caption("AutoLearn v15.8.2 · Public Safe Release · Terms & Privacy · Admin Mini · 60 Critical Manager · Mobile Safe · Hotfix Guide.")
+st.caption("AutoLearn Public · Public Safe Release · Terms & Privacy · Admin Mini · 60 Critical Manager · Mobile Safe · Hotfix Guide.")

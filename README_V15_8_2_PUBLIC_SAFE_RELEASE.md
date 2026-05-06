@@ -1,4 +1,4 @@
-# AutoLearn v15.8.2 Public Safe Release
+# AutoLearn Public
 
 Bản nhỏ tập trung làm app an toàn hơn khi chia sẻ public:
 
